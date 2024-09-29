@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confess - Created by Sonnyvic</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f8ff;
+            color: #333;
+            transition: background-color 0.5s;
+        }
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        main {
+            padding: 20px;
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            margin-bottom: 10px;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        textarea {
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+            height: 100px;
+        }
+        button {
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        footer {
+            text-align: center;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            position: relative;
+            bottom: 0;
+            width: 100%;
+        }
+        .confessions {
+            margin-top: 20px;
+        }
+        .confession {
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px 0;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+        #confessionCounter {
+            margin-top: 20px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .rating {
+            display: flex;
+            margin-top: 5px;
+        }
+        .rating button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            padding: 0;
+        }
+        #notification {
+            color: green;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .feedback-form {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Message your secret someone</h1>
+    <p>Leave your confession below</p>
+</header>
+
+<main>
+    <h2>Share your confession link!</h2>
+    <button onclick="generateShareableLink()">Generate Shareable Link</button>
+    <p id="shareableLink"></p>
+
+    <h2>Confession Form</h2>
+    <form id="confessionForm">
+        <textarea id="confession" placeholder="Type your confession here..." required></textarea>
+        <button type="submit">Submit Confession</button>
+    </form>
+
+    <div id="confessionCounter">Total Confessions: 0</div>
+    <div class="confessions" id="confessions"></div>
+
+    <h2>Messages for App Owner</h2>
+    <button onclick="fetchMessages()">Load My Messages</button>
+    <div id="messages"></div>
+
+    <h2>Feedback Form</h2>
+    <form id="feedbackForm" class="feedback-form">
+        <textarea id="feedback" placeholder="Type your feedback here..." required></textarea>
+        <button type="submit">Submit Feedback</button>
+    </form>
+
+    <div id="notification"></div>
+</main>
+
+<footer>
+    <p>&copy; All Right Reserved 2024 - Created by Sonnyvic Lozada</p>
+</footer>
+
+<script>
+    const confessionForm = document.getElementById("confessionForm");
+    const confessionsContainer = document.getElementById("confessions");
+    const confessionCounter = document.getElementById("confessionCounter");
+    const messagesContainer = document.getElementById("messages");
+    const feedbackForm = document.getElementById("feedbackForm");
+    const feedbackInput = document.getElementById("feedback");
+    const notification = document.getElementById("notification");
+
+    let totalConfessions = 0;
+    let messages = [];
+
+    // Function to generate a shareable link
+    function generateShareableLink() {
+        const userId = generateUniqueId(); // Generate a unique ID for the user
+        const link = `https://yourapp.com/confess/${userId}`;
+        document.getElementById('shareableLink').textContent = `Your link: ${link}`;
+        navigator.clipboard.writeText(link).then(() => {
+            alert("Link copied to clipboard!");
+        });
+    }
+
+    // Function to generate a unique ID (for demo purposes)
+    function generateUniqueId() {
+        return 'user-' + Math.random().toString(36).substr(2, 9);
+    }
+
+    // Function to handle form submission and submit confessions
+    confessionForm.onsubmit = function(event) {
+        event.preventDefault(); // Prevent the form from submitting
+        const confessionText = document.getElementById("confession").value;
+        
+        // Create a new confession element
+        const confessionDiv = document.createElement("div");
+        confessionDiv.classList.add("confession");
+        confessionDiv.textContent = confessionText;
+
+        // Create rating buttons
+        const ratingDiv = document.createElement("div");
+        ratingDiv.classList.add("rating");
+        for (let i = 1; i <= 5; i++) {
+            const btn = document.createElement("button");
+            btn.textContent = "★";
+            btn.onclick = () => rateConfession(confessionDiv, i);
+            ratingDiv.appendChild(btn);
+        }
+
+        confessionDiv.appendChild(ratingDiv);
+
+        // Append the new confession to the container
+        confessionsContainer.prepend(confessionDiv);
+        
+        // Update the confession counter
+        totalConfessions++;
+        confessionCounter.textContent = `Total Confessions: ${totalConfessions}`;
+        
+        // Reset the form
+        confessionForm.reset();
+    };
+
+    // Function to rate a confession
+    function rateConfession(confessionDiv, rating) {
+        const ratedMessage = document.createElement("div");
+        ratedMessage.textContent = `You rated this confession: ${rating} star(s)`;
+        confessionDiv.appendChild(ratedMessage);
+    }
+
+    // Function to fetch and display messages for the app owner
+    function fetchMessages() {
+        // For demo purposes, we are using dummy messages
+        const dummyMessages = [
+            "Message 1: Hey, I like your app!",
+            "Message 2: Can you make a version for iOS?",
+            "Message 3: This is an anonymous confession."
+        ];
+        messagesContainer.innerHTML = ''; // Clear previous messages
+
+        dummyMessages.forEach(message => {
+            const msgDiv = document.createElement("div");
+            msgDiv.textContent = message;
+            messagesContainer.appendChild(msgDiv);
+        });
+    }
+
+    // Function to handle feedback form submission
+    feedbackForm.onsubmit = function(event) {
+        event.preventDefault(); // Prevent the form from submitting
+        const feedbackText = feedbackInput.value;
+
+        // Process feedback (for demo purposes)
+        notification.textContent = "Thank you for your feedback!";
+        
+        // Reset the feedback form
+        feedbackForm.reset();
+    };
+</script>
+
+</body>
+</html>
